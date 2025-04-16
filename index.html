@@ -60,7 +60,7 @@
       display: block;
     }
 
-    input, select {
+    input {
       padding: 10px;
       border-radius: 10px;
       border: 1px solid #ccc;
@@ -120,7 +120,10 @@
 
   <!-- Scelta ora -->
   <div class="screen" id="hourScreen">
-    <p>Scrivi l'ora scolastica (es. "prima", "1", "seconda") <b>oppure</b> un orario reale (es. "08:05")</p>
+    <p>
+      Scrivi l'ora scolastica (es. "prima", "1", "seconda") <b>oppure</b> un orario reale (es. "08:05")
+    </p>
+    <button onclick="setCurrentTime()">Inserisci l'orario reale (Italy - Rome)</button>
     <input type="text" id="hourInput" placeholder="Esempio: 08:00 o 2">
     <button onclick="showResult()">Scopri materia</button>
     <div class="suggestion" id="hourSuggestion" style="display:none;">
@@ -172,6 +175,20 @@
       document.getElementById("daySuggestion").style.display = "none";
     }
 
+    function setCurrentTime() {
+      const now = new Date();
+      const options = {
+        timeZone: 'Europe/Rome',
+        hour: '2-digit',
+        minute: '2-digit',
+        hour12: false
+      };
+      const parts = new Intl.DateTimeFormat('it-IT', options).formatToParts(now);
+      const hour = parts.find(p => p.type === 'hour').value;
+      const minute = parts.find(p => p.type === 'minute').value;
+      document.getElementById("hourInput").value = `${hour.padStart(2, '0')}:${minute.padStart(2, '0')}`;
+    }
+
     function showResult() {
       const input = normalize(document.getElementById("hourInput").value);
       const mapping = {
@@ -187,7 +204,7 @@
       } else if (/^\d{2}:\d{2}$/.test(input)) {
         const [h, m] = input.split(":").map(Number);
         const totalMinutes = h * 60 + m;
-        const start = 8 * 60; // 08:00
+        const start = 8 * 60;
         if (totalMinutes >= start && totalMinutes < start + 60 * 6) {
           oraIndex = Math.floor((totalMinutes - start) / 60);
         }
