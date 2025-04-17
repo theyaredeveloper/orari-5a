@@ -1,14 +1,11 @@
 <!DOCTYPE html>
 <html lang="it">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Orario 5A</title>
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
+    * { box-sizing: border-box; }
     body {
       font-family: 'Segoe UI', sans-serif;
       background: #f0f4f8;
@@ -17,38 +14,30 @@
       text-align: center;
       color: #333;
     }
-
     h1 {
       color: #1d3557;
-      font-size: 22px;
+      font-size: 24px;
       margin-bottom: 20px;
     }
-
     .popup {
-      position: fixed;
-      top: 0; left: 0;
+      position: fixed; top: 0; left: 0;
       width: 100%; height: 100%;
       background: rgba(0, 0, 0, 0.5);
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      display: flex; align-items: center; justify-content: center;
       z-index: 999;
     }
-
     .popup-content {
       background: white;
       padding: 20px;
       border-radius: 16px;
       width: 90%;
-      max-width: 350px;
+      max-width: 400px;
       box-shadow: 0 0 20px rgba(0,0,0,0.2);
     }
-
     .popup-content h2 {
       margin-top: 0;
-      font-size: 24px;
+      font-size: 26px;
     }
-
     button {
       background-color: #1d3557;
       color: white;
@@ -57,19 +46,11 @@
       font-size: 16px;
       border-radius: 12px;
       cursor: pointer;
-      margin: 10px 0;
+      margin: 10px auto;
       width: 90%;
       max-width: 300px;
-    }
-
-    .screen {
-      display: none;
-    }
-
-    .visible {
       display: block;
     }
-
     input {
       padding: 14px;
       border-radius: 10px;
@@ -80,12 +61,12 @@
       margin: 10px auto;
       display: block;
     }
-
+    .screen { display: none; }
+    .visible { display: block; }
     .suggestion {
       margin-top: 20px;
       color: #e63946;
     }
-
     .suggestion span {
       display: inline-block;
       background: #fff;
@@ -96,13 +77,11 @@
       cursor: pointer;
       font-size: 14px;
     }
-
     .result {
       font-size: 18px;
       margin-top: 20px;
       color: #1d3557;
     }
-
     p {
       font-size: 15px;
       margin: 15px 10px;
@@ -121,10 +100,10 @@
 
   <h1>Sito creato per gli orari della 5A</h1>
 
-  <!-- Scelta giorno -->
   <div class="screen visible" id="dayScreen">
-    <input type="text" id="dayInput" placeholder="Scrivi il giorno es. lunedì">
+    <input type="text" id="dayInput" placeholder="Scrivi il giorno es. lunedì" />
     <button onclick="nextToHour()">Avanti</button>
+    <div id="autoDayBtnContainer"></div>
     <div class="suggestion" id="daySuggestion" style="display:none;">
       Stavi cercando...<br>
       <span onclick="selectDay('lunedì')">Lunedì</span>
@@ -135,16 +114,13 @@
     </div>
   </div>
 
-  <!-- Scelta ora -->
   <div class="screen" id="hourScreen">
-    <p>
-      Scrivi l'ora scolastica (es. "prima", "1", "seconda") <br><b>oppure</b> un orario reale (es. "08:05")
-    </p>
+    <p>Scrivi l'ora scolastica (es. "prima", "1", "seconda") o un orario reale (es. "08:05")</p>
     <button onclick="setCurrentTime()">Inserisci l'orario reale (Italy - Rome)</button>
-    <input type="text" id="hourInput" placeholder="Esempio: 08:00 o 2">
+    <input type="text" id="hourInput" placeholder="Esempio: 08:00 o 2" />
     <button onclick="showResult()">Scopri materia</button>
     <div class="suggestion" id="hourSuggestion" style="display:none;">
-      Inserisci orari validi tra le 08:00 e le 14:00 (Venerdì fino alle 13:00)
+      Orario non scolastico (Scuola: 08:00 - 14:00 lun-giov, 08:00 - 13:00 ven)
     </div>
     <div class="result" id="result"></div>
   </div>
@@ -163,6 +139,7 @@
 
     function closePopup() {
       document.getElementById('popup').style.display = 'none';
+      loadAutoDayBtn();
     }
 
     function normalize(text) {
@@ -175,7 +152,6 @@
         selectedDay = input;
         document.getElementById("dayScreen").classList.remove("visible");
         document.getElementById("hourScreen").classList.add("visible");
-        document.getElementById("daySuggestion").style.display = "none";
         errorCount = 0;
       } else {
         errorCount++;
@@ -189,17 +165,23 @@
       selectedDay = day;
       document.getElementById("dayScreen").classList.remove("visible");
       document.getElementById("hourScreen").classList.add("visible");
-      document.getElementById("daySuggestion").style.display = "none";
+    }
+
+    function loadAutoDayBtn() {
+      const today = new Date().toLocaleDateString("it-IT", { weekday: 'long', timeZone: "Europe/Rome" }).toLowerCase();
+      if (schedule[today]) {
+        const btn = document.createElement("button");
+        btn.textContent = "Inserisci il giorno dal dispositivo (Italy - Rome)";
+        btn.onclick = function () {
+          selectDay(today);
+        };
+        document.getElementById("autoDayBtnContainer").appendChild(btn);
+      }
     }
 
     function setCurrentTime() {
       const now = new Date();
-      const options = {
-        timeZone: 'Europe/Rome',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
-      };
+      const options = { timeZone: 'Europe/Rome', hour: '2-digit', minute: '2-digit', hour12: false };
       const parts = new Intl.DateTimeFormat('it-IT', options).formatToParts(now);
       const hour = parts.find(p => p.type === 'hour').value;
       const minute = parts.find(p => p.type === 'minute').value;
@@ -213,22 +195,24 @@
         "quarta": 3, "quinta": 4, "sesta": 5,
         "1": 0, "2": 1, "3": 2, "4": 3, "5": 4, "6": 5
       };
-
       let oraIndex = null;
-
-      if (mapping.hasOwnProperty(input)) {
+      if (mapping[input] !== undefined) {
         oraIndex = mapping[input];
       } else if (/^\d{2}:\d{2}$/.test(input)) {
         const [h, m] = input.split(":").map(Number);
-        const totalMinutes = h * 60 + m;
-        const start = 8 * 60;
-        if (totalMinutes >= start && totalMinutes < start + 60 * 6) {
-          oraIndex = Math.floor((totalMinutes - start) / 60);
+        const total = h * 60 + m;
+        const inizio = 8 * 60;
+        const fine = selectedDay === "venerdì" ? 13 * 60 : 14 * 60;
+        if (total >= inizio && total < fine) {
+          oraIndex = Math.floor((total - inizio) / 60);
+        } else {
+          document.getElementById("hourSuggestion").style.display = "block";
+          document.getElementById("result").textContent = "";
+          return;
         }
       }
 
       const maxOre = selectedDay === "venerdì" ? 5 : 6;
-
       if (oraIndex !== null && oraIndex < maxOre) {
         const materia = schedule[selectedDay][oraIndex];
         document.getElementById("result").textContent = `Materia: ${materia}`;
